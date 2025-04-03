@@ -1,0 +1,32 @@
+services:
+  identityservic.db: #ms sql server
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong@Passw0rd
+    ports:
+      - "1433:1433"
+    networks:
+      - identityservice-network
+
+  identityservice:
+    image: ${DOCKER_REGISTRY-}identityservice
+    build:
+      context: .
+      dockerfile: src/services/IdentityService/Dockerfile
+    depends_on:
+      - identityservic.db
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    networks:
+      - identityservice-network
+
+  gateway.api:
+    image: ${DOCKER_REGISTRY-}gatewayapi
+    build:
+      context: .
+      dockerfile: src/gateway/Gateway.API/Dockerfile
+
+networks:
+    identityservice-network:
+        driver: bridge
