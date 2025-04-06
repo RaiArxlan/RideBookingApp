@@ -2,61 +2,55 @@ using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-// Add YARP services
-//builder.Services.AddReverseProxy()
-//    .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
-
-// Add rate limiting
-builder.Services.AddRateLimiter(options =>
-{
-    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
-        RateLimitPartition.GetFixedWindowLimiter("global", _ => new FixedWindowRateLimiterOptions
-        {
-            PermitLimit = 100,
-            Window = TimeSpan.FromMinutes(1),
-            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-            QueueLimit = 2
-        }));
-});
-
-//// Add IP whitelisting
-//builder.Services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
-//builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
-//builder.Services.Configure<IpRateLimitOptions>(options =>
-//{
-//    options.IpWhitelist = new List<string> { "127.0.0.1", "::1" };
-//});
+ConfigureServices(builder.Services, builder.Configuration);
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+ConfigureMiddleware(app);
+
+await app.RunAsync();
+
+void ConfigureServices(IServiceCollection services, IConfiguration configuration)
 {
-    app.UseDeveloperExceptionPage();
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    // Add YARP services
+    services.AddReverseProxy()
+        .LoadFromConfig(configuration.GetSection("ReverseProxy"));
+
+    // Add rate limiting
+    services.AddRateLimiter(options =>
+    {
+        options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+            RateLimitPartition.GetFixedWindowLimiter("fixed", _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 100,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 2
+            }));
+    });
 }
 
-app.UseHttpsRedirection();
+void ConfigureMiddleware(WebApplication app)
+{
+    // Configure the HTTP request pipeline.
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseDeveloperExceptionPage();
+    }
+    // Enable HSTS
+    app.UseHsts();
 
-app.UseAuthorization();
+    // Enable HTTPS redirection
+    app.UseHttpsRedirection();
 
-// Use YARP reverse proxy
-//app.MapReverseProxy();
+    // Enable Authorization
+    app.UseAuthorization();
 
-// Use rate limiting
-app.UseRateLimiter();
+    // Use YARP reverse proxy
+    app.MapReverseProxy();
 
-// Use IP whitelisting
-//app.UseIpRateLimiting();
+    // Use rate limiting
+    app.UseRateLimiter();
 
-app.MapControllers();
-
-app.MapGet("/", () => "Gateway API is running!");
-
-app.Run();
+    app.MapGet("/", () => "Gateway API is running!");
+}
