@@ -7,7 +7,7 @@ services:
       - SA_PASSWORD=YourStrong@Passw0rd
     ports:
       - "1433:1433"
-  
+
   identityservice:
     image: ${DOCKER_REGISTRY-}identityservice
     build:
@@ -20,7 +20,7 @@ services:
     ports:
       - "63202:8080"
       - "63252:8081"
- 
+
   gateway.api:
     image: ${DOCKER_REGISTRY-}gatewayapi
     build:
@@ -31,3 +31,13 @@ services:
     ports:
        - "63201:8080"
        - "63251:8081"
+
+  dataservice.api:
+    image: ${DOCKER_REGISTRY-}dataserviceapi
+    build:
+      context: .
+      dockerfile: src/services/DataService.API/Dockerfile
+    ports:
+      - "63203:8080"
+      - "63253:8081"
+
