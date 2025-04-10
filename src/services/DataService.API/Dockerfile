@@ -12,19 +12,19 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["src/gateway/Gateway.API/Gateway.API.csproj", "src/gateway/Gateway.API/"]
-RUN dotnet restore "./src/gateway/Gateway.API/Gateway.API.csproj"
+COPY ["src/services/DataService.API/DataService.API.csproj", "src/services/DataService.API/"]
+RUN dotnet restore "./src/services/DataService.API/DataService.API.csproj"
 COPY . .
-WORKDIR "/src/src/gateway/Gateway.API"
-RUN dotnet build "./Gateway.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/src/services/DataService.API"
+RUN dotnet build "./DataService.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./Gateway.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./DataService.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Gateway.API.dll"]
+ENTRYPOINT ["dotnet", "DataService.API.dll"]
