@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using IdentityService.Database;
+using IdentityService.Model;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,8 +19,13 @@ await app.RunAsync();
 void ConfigureServices(IServiceCollection services, IConfiguration configuration)
 {
     // Configure Database
+    var isDocker = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
+    var connectionString = isDocker
+        ? configuration.GetConnectionString("DockerConnectionString")
+        : configuration.GetConnectionString("DefaultConnection");
+
     services.AddDbContext<IdentityDbContext>(options =>
-        options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"))
+        options.UseSqlServer(connectionString)
     );
 
     // Configure Identity
