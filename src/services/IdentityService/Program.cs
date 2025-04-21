@@ -35,7 +35,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     // Configure JWT Authentication
     var jwtSettings = configuration.GetSection("JwtSettings");
-    var key = Encoding.UTF8.GetBytes(jwtSettings["Secret"]);
+    var key = Encoding.UTF8.GetBytes(jwtSettings["Secret"]!);
 
     services.AddAuthentication(options =>
     {
@@ -77,7 +77,7 @@ void ConfigureMiddleware(WebApplication app)
         using (var scope = app.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
-         
+
             // Check if there are any pending migrations
             if (context.Database.GetPendingMigrations().Any())
             {

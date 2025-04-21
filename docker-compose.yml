@@ -28,16 +28,37 @@ services:
       dockerfile: src/gateway/Gateway.API/Dockerfile
     depends_on:
        - identityservice
+       - dataservice.api
     ports:
        - "63201:8080"
        - "63251:8081"
+
+  # dataservice.db:
+  #   image: postgres
+  #   environment:
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=YourStrong@Passw0rd
+  #     - POSTGRES_DB=dataservice
+  #   volumes:
+  #     - dataservice-db-data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
 
   dataservice.api:
     image: ${DOCKER_REGISTRY-}dataserviceapi
     build:
       context: .
       dockerfile: src/services/DataService.API/Dockerfile
+    # depends_on:
+    #   - dataservice.db
+    # environment:
+    #   - POSTGRES_USER=postgres
+    #   - POSTGRES_PASSWORD=YourStrong@Passw0rd
+    #   - POSTGRES_DB=dataservice
+    #   - ASPNETCORE_ENVIRONMENT=Development
     ports:
       - "63203:8080"
       - "63253:8081"
 
+volumes:
+  dataservice-db-data:
