@@ -1,7 +1,12 @@
+using Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure services
-ConfigureServices(builder.Services);
+ConfigureServices(builder.Services, builder.Configuration);
 
 var app = builder.Build();
 
@@ -10,12 +15,14 @@ ConfigureMiddleware(app);
 
 await app.RunAsync();
 
-void ConfigureServices(IServiceCollection services)
+void ConfigureServices(IServiceCollection services, IConfiguration configuration)
 {
     // Add services to the container
     services.AddControllers();
-    services.AddEndpointsApiExplorer();
-    services.AddSwaggerGen();
+
+    services.AddJwtAuthentication(configuration);
+
+    services.AddAuthorization();
 }
 
 void ConfigureMiddleware(WebApplication app)
@@ -24,8 +31,6 @@ void ConfigureMiddleware(WebApplication app)
     if (app.Environment.IsDevelopment())
     {
         app.UseDeveloperExceptionPage();
-        app.UseSwagger();
-        app.UseSwaggerUI();
     }
     else
     {
@@ -34,6 +39,8 @@ void ConfigureMiddleware(WebApplication app)
         app.UseHsts();
     }
 
+    // Add authentication and authorization middleware
+    app.UseAuthentication();
     app.UseAuthorization();
 
     app.MapControllers();

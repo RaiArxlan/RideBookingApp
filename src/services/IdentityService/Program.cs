@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using IdentityService.Database;
 using IdentityService.Model;
+using Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,31 +34,8 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         .AddEntityFrameworkStores<IdentityDbContext>()
         .AddDefaultTokenProviders();
 
-    // Configure JWT Authentication
-    var jwtSettings = configuration.GetSection("JwtSettings");
-    var key = Encoding.UTF8.GetBytes(jwtSettings["Secret"]!);
-
-    services.AddAuthentication(options =>
-    {
-        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    })
-    .AddJwtBearer(options =>
-    {
-        options.RequireHttpsMetadata = false;
-        options.SaveToken = true;
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(key),
-            ValidateIssuer = true,
-            ValidIssuer = jwtSettings["Issuer"],
-            ValidateAudience = true,
-            ValidAudience = jwtSettings["Audience"],
-            ValidateLifetime = true
-        };
-    });
-
+    services.AddJwtAuthentication(configuration);
+    
     services.AddControllers();
     services.AddEndpointsApiExplorer();
     services.AddSwaggerGen();
