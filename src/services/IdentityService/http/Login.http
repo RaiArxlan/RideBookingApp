@@ -1,0 +1,16 @@
+@Gateway.Url = http://localhost:63201/identity-service
+
+# using below two lines, requsts be switched between call through gateway and direct identity service call
+
+@BaseUrl = {{Gateway.Url}}
+# @BaseUrl = http://localhost:63202
+
+POST {{BaseUrl}}/auth/login
+User-Agent: curl/8.2.1
+accept: */*
+Content-Type: application/json
+
+{
+  "email": "raiarslan4671@gmail.com",
+  "password": "AVeryStrongPassword@1"
+}

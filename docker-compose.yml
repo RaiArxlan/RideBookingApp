@@ -1,64 +1,71 @@
+name: Ride Booking App
+
 services:
 
-  identityservice.db:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=YourStrong@Passw0rd
-    ports:
-      - "1433:1433"
+    gateway.api:
+        image: ${DOCKER_REGISTRY-}gatewayapi
+        container_name: gateway.api
+        build:
+            context: .
+            dockerfile: src/gateway/Gateway.API/Dockerfile
+        depends_on:
+            - identityservice
+            - dataservice.api
+        ports:
+            - "63201:8080"
+            - "63251:8081"
 
-  identityservice:
-    image: ${DOCKER_REGISTRY-}identityservice
-    build:
-      context: .
-      dockerfile: src/services/IdentityService/Dockerfile
-    depends_on:
-      - identityservice.db
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-    ports:
-      - "63202:8080"
-      - "63252:8081"
+    identityservice:
+        image: ${DOCKER_REGISTRY-}identityservice
+        container_name: identityservice
+        build:
+            context: .
+            dockerfile: src/services/IdentityService/Dockerfile
+        depends_on:
+            - identityservice.db
+        environment:
+            - ASPNETCORE_ENVIRONMENT=Development
+        ports:
+            - "63202:8080"
+            - "63252:8081"
 
-  gateway.api:
-    image: ${DOCKER_REGISTRY-}gatewayapi
-    build:
-      context: .
-      dockerfile: src/gateway/Gateway.API/Dockerfile
-    depends_on:
-       - identityservice
-       - dataservice.api
-    ports:
-       - "63201:8080"
-       - "63251:8081"
+    identityservice.db:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        container_name: identityservice.db
+        environment:
+            - ACCEPT_EULA=Y
+            - SA_PASSWORD=YourStrong@Passw0rd
+        ports:
+            - "1433:1433"
 
-  # dataservice.db:
-  #   image: postgres
-  #   environment:
-  #     - POSTGRES_USER=postgres
-  #     - POSTGRES_PASSWORD=YourStrong@Passw0rd
-  #     - POSTGRES_DB=dataservice
-  #   volumes:
-  #     - dataservice-db-data:/var/lib/postgresql/data
-  #   ports:
-  #     - "5432:5432"
+    dataservice.api:
+        image: ${DOCKER_REGISTRY-}dataserviceapi
+        container_name: dataservice.api
+        build:
+            context: .
+            dockerfile: src/services/DataService.API/Dockerfile
+        depends_on:
+            - dataservice.db
+        environment:
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=YourStrong@Passw0rd
+            - POSTGRES_DB=dataservice
+            - ASPNETCORE_ENVIRONMENT=Development
+        ports:
+            - "63203:8080"
+            - "63253:8081"
 
-  dataservice.api:
-    image: ${DOCKER_REGISTRY-}dataserviceapi
-    build:
-      context: .
-      dockerfile: src/services/DataService.API/Dockerfile
-    # depends_on:
-    #   - dataservice.db
-    # environment:
-    #   - POSTGRES_USER=postgres
-    #   - POSTGRES_PASSWORD=YourStrong@Passw0rd
-    #   - POSTGRES_DB=dataservice
-    #   - ASPNETCORE_ENVIRONMENT=Development
-    ports:
-      - "63203:8080"
-      - "63253:8081"
+    dataservice.db:
+        image: postgres
+        container_name: dataservice.db
+        environment:
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=YourStrong@Passw0rd
+            - POSTGRES_DB=dataservice
+        volumes:
+            - dataservice-db-data:/var/lib/postgresql/data
+        ports:
+            - "5432:5432"
 
 volumes:
   dataservice-db-data:

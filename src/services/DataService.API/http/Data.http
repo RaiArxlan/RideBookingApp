@@ -1,0 +1,11 @@
+@Gateway.Url = http://localhost:63201/data-service
+
+# using below two lines, requsts be switched between call through gateway and direct data service call
+
+@BaseUrl = {{Gateway.Url}}
+# @BaseUrl = http://localhost:63203
+
+GET {{BaseUrl}}/data
+User-Agent: curl/8.2.1
+accept: */*
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5MGI0ZjE0My02YjQ5LTQyM2UtOGZkNi0yMDk2YWI5MWQwOTEiLCJlbWFpbCI6InJhaWFyc2xhbjQ2NzFAZ21haWwuY29tIiwiRnVsbE5hbWUiOiJSYWkgQXJzbGFuIiwiZXhwIjoxNzQ1MzMyMjg4LCJpc3MiOiJ5b3VyLWlzc3VlciIsImF1ZCI6InlvdXItYXVkaWVuY2UifQ.UqemegWfoT1A5q5cM4fWCqpmex9gI8C2acBZ-4i_F1U
