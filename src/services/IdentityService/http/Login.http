@@ -1,9 +1,7 @@
-@Gateway.Url = http://localhost:63201/identity-service
-
-# using below two lines, requsts be switched between call through gateway and direct identity service call
-
-@BaseUrl = {{Gateway.Url}}
-# @BaseUrl = http://localhost:63202
+### Login request
+# Toggle between gateway and direct identity service
+@BaseUrl = {{gateway-url}}/identity-service
+# @BaseUrl = {{identity-service-url}}
 
 POST {{BaseUrl}}/auth/login
 User-Agent: curl/8.2.1
