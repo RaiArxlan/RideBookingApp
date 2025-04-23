@@ -1,0 +1,14 @@
+### Login request
+# Toggle between gateway and direct identity service
+@BaseUrl = {{gateway-url}}/identity-service
+# @BaseUrl = {{identity-service-url}}
+
+POST {{BaseUrl}}/auth/login
+User-Agent: curl/8.2.1
+accept: */*
+Content-Type: application/json
+
+{
+  "email": "raiarslan4671@gmail.com",
+  "password": "AVeryStrongPassword@1"
+}

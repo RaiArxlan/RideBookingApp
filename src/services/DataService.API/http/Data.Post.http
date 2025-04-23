@@ -1,0 +1,16 @@
+# Toggle between gateway and direct data service
+@BaseUrl = {{gateway-url}}/data-service
+# @BaseUrl = {{data-service-url}}
+
+POST {{BaseUrl}}/data
+User-Agent: curl/8.2.1
+accept: */*
+Authorization: Bearer {{auth-token}}
+Content-Type: application/json
+{
+  "name": "Rai Arslan",
+  "email": "raiarslan4671@gmail.com",
+  "Phone": "+92300000000",
+  "Occupaiton": "Software Engineer",
+  "Address": "Lahore, Pakistan"
+}

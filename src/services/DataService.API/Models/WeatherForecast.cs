@@ -1,4 +1,4 @@
-namespace DataService.API
+namespace DataService.API.Models
 {
     public class WeatherForecast
     {

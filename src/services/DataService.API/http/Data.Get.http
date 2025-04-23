@@ -1,0 +1,8 @@
+# Toggle between gateway and direct data service
+@BaseUrl = {{gateway-url}}/data-service
+# @BaseUrl = {{data-service-url}}
+
+GET {{BaseUrl}}/data
+User-Agent: curl/8.2.1
+accept: */*
+Authorization: Bearer {{auth-token}}

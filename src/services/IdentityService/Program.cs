@@ -1,10 +1,9 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using IdentityService.Database;
 using IdentityService.Model;
+using Identity;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,14 +17,13 @@ await app.RunAsync();
 
 void ConfigureServices(IServiceCollection services, IConfiguration configuration)
 {
-    // Configure Database
     var isDocker = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
     var connectionString = isDocker
         ? configuration.GetConnectionString("DockerConnectionString")
         : configuration.GetConnectionString("DefaultConnection");
 
     services.AddDbContext<IdentityDbContext>(options =>
-        options.UseSqlServer(connectionString)
+        options.UseNpgsql(connectionString)
     );
 
     // Configure Identity
@@ -33,34 +31,37 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         .AddEntityFrameworkStores<IdentityDbContext>()
         .AddDefaultTokenProviders();
 
-    // Configure JWT Authentication
-    var jwtSettings = configuration.GetSection("JwtSettings");
-    var key = Encoding.UTF8.GetBytes(jwtSettings["Secret"]);
-
-    services.AddAuthentication(options =>
-    {
-        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    })
-    .AddJwtBearer(options =>
-    {
-        options.RequireHttpsMetadata = false;
-        options.SaveToken = true;
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(key),
-            ValidateIssuer = true,
-            ValidIssuer = jwtSettings["Issuer"],
-            ValidateAudience = true,
-            ValidAudience = jwtSettings["Audience"],
-            ValidateLifetime = true
-        };
-    });
+    services.AddJwtAuthentication(configuration);
 
     services.AddControllers();
     services.AddEndpointsApiExplorer();
-    services.AddSwaggerGen();
+    builder.Services.AddSwaggerGen(opt =>
+    {
+        opt.SwaggerDoc("v1", new OpenApiInfo { Title = "Identity Service", Version = "v1" });
+        opt.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            In = ParameterLocation.Header,
+            Description = "Please enter token",
+            Name = "Authorization",
+            Type = SecuritySchemeType.Http,
+            BearerFormat = "JWT",
+            Scheme = "bearer"
+        });
+        opt.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type=ReferenceType.SecurityScheme,
+                    Id="Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+    });
     services.AddAuthorization();
 }
 
@@ -77,14 +78,59 @@ void ConfigureMiddleware(WebApplication app)
         using (var scope = app.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
-         
+
             // Check if there are any pending migrations
             if (context.Database.GetPendingMigrations().Any())
             {
                 // Apply migrations
                 context.Database.Migrate();
             }
+
+            // Register defaul user with admin role using UserManager
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+            var user = new ApplicationUser()
+            {
+                Email = "raiarslan4671@gmail.com",
+                UserName = "raiarslan4671@gmail.com",
+                FullName = "Arslan Rai",
+                Address = "Lahore"
+            };
+
+            // Check if the user already exists
+            var existingUser = userManager.FindByEmailAsync(user.Email).Result;
+            if (existingUser == null)
+            {
+                if (userManager.CreateAsync(user, "AVeryStrongPassword@1").Result.Succeeded)
+                {
+                    // User created successfully
+                    existingUser = userManager.FindByEmailAsync(user.Email).Result;
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            if (!roleManager.RoleExistsAsync("Admin").Result)
+            {
+                var role = new IdentityRole("Admin");
+                roleManager.CreateAsync(role).Wait();
+            }
+
+            if (!userManager.IsInRoleAsync(existingUser!, "Admin").Result)
+            {
+                userManager.AddToRoleAsync(existingUser!, "Admin").Wait();
+            }
         }
+
+        app.UseCors(builder =>
+        {
+            builder.AllowAnyOrigin()
+                   .AllowAnyMethod()
+                   .AllowAnyHeader();
+        });
     }
     else
     {

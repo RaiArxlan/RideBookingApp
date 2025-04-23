@@ -1,4 +1,5 @@
 ﻿using IdentityService.Model;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -10,6 +11,7 @@ namespace IdentityService.Controllers;
 
 [Route("[controller]")]
 [ApiController]
+[AllowAnonymous]
 public class AuthController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
@@ -24,7 +26,13 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterModel model)
     {
-        var user = new ApplicationUser { UserName = model.Email, Email = model.Email, FullName = model.FullName };
+        var user = new ApplicationUser
+        {
+            UserName = model.Email,
+            Email = model.Email,
+            FullName = model.FullName,
+            Address = model.Address
+        };
         var result = await _userManager.CreateAsync(user, model.Password);
 
         if (!result.Succeeded)

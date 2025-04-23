@@ -1,25 +1,83 @@
+using Identity;
+using Microsoft.OpenApi.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+// Configure services
+ConfigureServices(builder.Services, builder.Configuration);
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// Configure middleware
+ConfigureMiddleware(app);
+
+await app.RunAsync();
+
+void ConfigureServices(IServiceCollection services, IConfiguration configuration)
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    // Add services to the container
+    services.AddControllers();
+
+    services.AddJwtAuthentication(configuration);
+
+    services.AddControllers();
+    services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen(opt =>
+    {
+        opt.SwaggerDoc("v1", new OpenApiInfo { Title = "Data Service", Version = "v1" });
+        opt.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            In = ParameterLocation.Header,
+            Description = "Please enter token",
+            Name = "Authorization",
+            Type = SecuritySchemeType.Http,
+            BearerFormat = "JWT",
+            Scheme = "bearer"
+        });
+        opt.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type=ReferenceType.SecurityScheme,
+                    Id="Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+    }); services.AddAuthorization();
 }
 
-app.UseHttpsRedirection();
+void ConfigureMiddleware(WebApplication app)
+{
+    // Configure the HTTP request pipeline
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseDeveloperExceptionPage();
+        app.UseSwagger();
+        app.UseSwaggerUI();
 
-app.UseAuthorization();
+        app.UseCors(builder =>
+        {
+            builder.AllowAnyOrigin()
+                   .AllowAnyMethod()
+                   .AllowAnyHeader();
+        });
+    }
+    else
+    {
+        app.UseExceptionHandler("/error");
+        app.UseHttpsRedirection();
+        app.UseHsts();
+    }
 
-app.MapControllers();
+    // Add authentication and authorization middleware
+    app.UseAuthentication();
+    app.UseAuthorization();
 
-app.Run();
+    app.MapControllers();
+    app.MapGet("/", () => "Data API is running!");
+}

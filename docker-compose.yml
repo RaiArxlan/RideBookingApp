@@ -1,15 +1,23 @@
+name: ridebookingapp
+
 services:
 
-  identityservice.db:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=YourStrong@Passw0rd
+  gateway.api:
+    image: ${DOCKER_REGISTRY-}gatewayapi
+    container_name: gateway.api
+    build:
+      context: .
+      dockerfile: src/gateway/Gateway.API/Dockerfile
+    depends_on:
+      - identityservice
+      - dataservice.api
     ports:
-      - "1433:1433"
+      - "63201:8080"
+      - "63251:8081"
 
   identityservice:
     image: ${DOCKER_REGISTRY-}identityservice
+    container_name: identityservice
     build:
       context: .
       dockerfile: src/services/IdentityService/Dockerfile
@@ -17,27 +25,69 @@ services:
       - identityservice.db
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=YourStrong@Passw0rd
+      - POSTGRES_DB=identitydb
     ports:
       - "63202:8080"
       - "63252:8081"
 
-  gateway.api:
-    image: ${DOCKER_REGISTRY-}gatewayapi
-    build:
-      context: .
-      dockerfile: src/gateway/Gateway.API/Dockerfile
-    depends_on:
-       - identityservice
+  identityservice.db:
+    image: postgres
+    container_name: identityservice.db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=YourStrong@Passw0rd
+      - POSTGRES_DB=identitydb
+    volumes:
+      - identityservice-db-data:/var/lib/postgresql/data
     ports:
-       - "63201:8080"
-       - "63251:8081"
+      - "5433:5432" # note: changed port to avoid clash with dataservice.db
 
   dataservice.api:
     image: ${DOCKER_REGISTRY-}dataserviceapi
+    container_name: dataservice.api
     build:
       context: .
       dockerfile: src/services/DataService.API/Dockerfile
+    depends_on:
+      - dataservice.db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=YourStrong@Passw0rd
+      - POSTGRES_DB=dataservice
+      - ASPNETCORE_ENVIRONMENT=Development
     ports:
       - "63203:8080"
       - "63253:8081"
 
+  dataservice.db:
+    image: postgres
+    container_name: dataservice.db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=YourStrong@Passw0rd
+      - POSTGRES_DB=dataservice
+    volumes:
+      - dataservice-db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - "8085:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    depends_on:
+      - identityservice.db
+      - dataservice.db
+
+volumes:
+  dataservice-db-data:
+  identityservice-db-data:
+  pgadmin-data:

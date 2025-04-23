@@ -1,0 +1,7 @@
+# using below two lines, requsts be switched between call through gateway and direct data service call
+# @BaseUrl = {{gateway-url}}/data-service
+@BaseUrl = {{data-service-url}}
+
+GET {{BaseUrl}}/weatherforecast
+User-Agent: curl/8.2.1
+accept: */*

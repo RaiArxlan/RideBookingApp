@@ -1,3 +1,7 @@
+using Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,29 +32,35 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
                 QueueLimit = 2
             }));
     });
+
+    services.AddJwtAuthentication(configuration);
+
+    builder.Services.AddAuthorization(options =>
+    {
+        options.AddPolicy("DefaultPolicy", policy =>
+        {
+            policy.RequireAuthenticatedUser();
+        });
+    });
 }
 
 void ConfigureMiddleware(WebApplication app)
 {
-    // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
     {
         app.UseDeveloperExceptionPage();
     }
-    // Enable HSTS
-    app.UseHsts();
+    else
+    {
+        app.UseExceptionHandler("/error");
+        app.UseHttpsRedirection();
+        app.UseHsts();
+    }
 
-    // Enable HTTPS redirection
-    app.UseHttpsRedirection();
-
-    // Enable Authorization
+    app.UseAuthentication();
     app.UseAuthorization();
-
-    // Use YARP reverse proxy
     app.MapReverseProxy();
-
-    // Use rate limiting
     app.UseRateLimiter();
-
     app.MapGet("/", () => "Gateway API is running!");
 }
+
