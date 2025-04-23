@@ -14,6 +14,5 @@ Content-Type: application/json
   "fullName": "Rai Arslan",
   "email": "raiarslan4671@gmail.com",
   "password": "AVeryStrongPassword@1",
-  "address": "Lahore",
-  "role": "Admin"
+  "address": "Lahore"
 }

@@ -17,14 +17,13 @@ await app.RunAsync();
 
 void ConfigureServices(IServiceCollection services, IConfiguration configuration)
 {
-    // Configure Database
     var isDocker = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
     var connectionString = isDocker
         ? configuration.GetConnectionString("DockerConnectionString")
         : configuration.GetConnectionString("DefaultConnection");
 
     services.AddDbContext<IdentityDbContext>(options =>
-        options.UseSqlServer(connectionString)
+        options.UseNpgsql(connectionString)
     );
 
     // Configure Identity
@@ -85,6 +84,44 @@ void ConfigureMiddleware(WebApplication app)
             {
                 // Apply migrations
                 context.Database.Migrate();
+            }
+
+            // Register defaul user with admin role using UserManager
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+            var user = new ApplicationUser()
+            {
+                Email = "raiarslan4671@gmail.com",
+                UserName = "raiarslan4671@gmail.com",
+                FullName = "Arslan Rai",
+                Address = "Lahore"
+            };
+
+            // Check if the user already exists
+            var existingUser = userManager.FindByEmailAsync(user.Email).Result;
+            if (existingUser == null)
+            {
+                if (userManager.CreateAsync(user, "AVeryStrongPassword@1").Result.Succeeded)
+                {
+                    // User created successfully
+                    existingUser = userManager.FindByEmailAsync(user.Email).Result;
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            if (!roleManager.RoleExistsAsync("Admin").Result)
+            {
+                var role = new IdentityRole("Admin");
+                roleManager.CreateAsync(role).Wait();
+            }
+
+            if (!userManager.IsInRoleAsync(existingUser!, "Admin").Result)
+            {
+                userManager.AddToRoleAsync(existingUser!, "Admin").Wait();
             }
         }
 
