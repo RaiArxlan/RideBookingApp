@@ -1,5 +1,5 @@
 # Toggle between gateway and direct identity service
-@BaseUrl = {{gateway-url}}/idenity-service
+@BaseUrl = {{gateway-url}}/identity-service
 # @BaseUrl = {{identity-service-url}}
 
 POST {{BaseUrl}}/auth/register

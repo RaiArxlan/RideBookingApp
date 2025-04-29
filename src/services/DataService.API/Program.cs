@@ -22,7 +22,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     services.AddControllers();
     services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen(opt =>
+    services.AddSwaggerGen(opt =>
     {
         opt.SwaggerDoc("v1", new OpenApiInfo { Title = "Data Service", Version = "v1" });
         opt.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -35,20 +35,22 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
             Scheme = "bearer"
         });
         opt.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
         {
-            new OpenApiSecurityScheme
             {
-                Reference = new OpenApiReference
+                new OpenApiSecurityScheme
                 {
-                    Type=ReferenceType.SecurityScheme,
-                    Id="Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
+                    Reference = new OpenApiReference
+                    {
+                        Type=ReferenceType.SecurityScheme,
+                        Id="Bearer"
+                    }
+                },
+                Array.Empty<string>()
+            }
+        });
     });
-    }); services.AddAuthorization();
+    
+    services.AddAuthorization();
 }
 
 void ConfigureMiddleware(WebApplication app)
