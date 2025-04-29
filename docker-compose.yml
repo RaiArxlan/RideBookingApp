@@ -73,6 +73,13 @@ services:
     ports:
       - "5432:5432"
 
+  notificationservice:
+    image: ${DOCKER_REGISTRY-}notificationservice
+    container_name: notificationservice
+    build:
+      context: .
+      dockerfile: src/services/NotificationService/Dockerfile
+
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin
@@ -86,8 +93,22 @@ services:
     depends_on:
       - identityservice.db
       - dataservice.db
+  
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"   # AMQP protocol
+      - "15672:15672" # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
 
 volumes:
   dataservice-db-data:
   identityservice-db-data:
   pgadmin-data:
+  rabbitmq-data:
+

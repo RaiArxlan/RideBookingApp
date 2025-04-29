@@ -4,6 +4,8 @@ using IdentityService.Database;
 using IdentityService.Model;
 using Identity;
 using Microsoft.OpenApi.Models;
+using SharedKernel.Interfaces;
+using SharedKernel.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,6 +66,8 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     });
 
     services.AddAuthorization();
+
+    services.AddSingleton<IRabbitMqPublisher, RabbitMqPublisher>();
 }
 
 void ConfigureMiddleware(WebApplication app)

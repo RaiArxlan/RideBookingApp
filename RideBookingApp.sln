@@ -41,6 +41,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity", "src\shared\Iden
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedKernel", "src\shared\SharedKernel\SharedKernel.csproj", "{0FD4A7CC-0745-420A-A6C8-F8E20496DE42}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NotificationService", "NotificationService", "{794366EB-7397-4690-ABB0-584859266B78}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NotificationService", "src\services\NotificationService\NotificationService.csproj", "{5ED3F2A8-EB0C-4F40-ABFB-A9D5BB0DBB2C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +75,10 @@ Global
 		{0FD4A7CC-0745-420A-A6C8-F8E20496DE42}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0FD4A7CC-0745-420A-A6C8-F8E20496DE42}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0FD4A7CC-0745-420A-A6C8-F8E20496DE42}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5ED3F2A8-EB0C-4F40-ABFB-A9D5BB0DBB2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5ED3F2A8-EB0C-4F40-ABFB-A9D5BB0DBB2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5ED3F2A8-EB0C-4F40-ABFB-A9D5BB0DBB2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5ED3F2A8-EB0C-4F40-ABFB-A9D5BB0DBB2C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -86,6 +94,8 @@ Global
 		{0A28086A-0FA7-4F7F-B399-90DB7D84B6B6} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{B39A76CE-DDF0-4006-BF45-7EB167920F9E} = {0A28086A-0FA7-4F7F-B399-90DB7D84B6B6}
 		{0FD4A7CC-0745-420A-A6C8-F8E20496DE42} = {0A28086A-0FA7-4F7F-B399-90DB7D84B6B6}
+		{794366EB-7397-4690-ABB0-584859266B78} = {13009DB9-B151-47FA-8CD3-1C45EFF122E6}
+		{5ED3F2A8-EB0C-4F40-ABFB-A9D5BB0DBB2C} = {794366EB-7397-4690-ABB0-584859266B78}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3941D0EB-83A2-4846-9E4C-2F7F08A9C0B6}

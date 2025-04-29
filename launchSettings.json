@@ -6,7 +6,8 @@
       "serviceActions": {
         "identityservice": "StartDebugging",
         "gateway.api": "StartDebugging",
-        "dataservice.api": "StartDebugging"
+        "dataservice.api": "StartDebugging",
+        "notificationservice": "StartDebugging"
       }
     }
   }

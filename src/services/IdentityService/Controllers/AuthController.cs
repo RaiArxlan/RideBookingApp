@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using SharedKernel.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -16,11 +17,13 @@ public class AuthController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IConfiguration _configuration;
+    private readonly IRabbitMqPublisher _rabbitMqPublisher;
 
-    public AuthController(UserManager<ApplicationUser> userManager, IConfiguration configuration)
+    public AuthController(UserManager<ApplicationUser> userManager, IConfiguration configuration, IRabbitMqPublisher rabbitMqPublisher)
     {
         _userManager = userManager;
         _configuration = configuration;
+        _rabbitMqPublisher = rabbitMqPublisher;
     }
 
     [HttpPost("register")]
@@ -38,6 +41,10 @@ public class AuthController : ControllerBase
         if (!result.Succeeded)
             return BadRequest(result.Errors);
 
+        // publish an event to rabbitmq
+        var message = $"User {user.FullName} registered with email {user.Email}";
+        await _rabbitMqPublisher.Publish("user-registered", message);
+
         return Ok("User registered successfully!");
     }
 
@@ -51,6 +58,14 @@ public class AuthController : ControllerBase
         var token = GenerateJwtToken(user);
         return Ok(new { Token = token });
     }
+
+    [HttpPost("publishmessage")]
+    public async Task<IActionResult> PublishMessage([FromBody] string message)
+    {
+        await _rabbitMqPublisher.Publish("user-registered", message);
+        return Ok("Message published successfully!");
+    }
+
 
     private string GenerateJwtToken(ApplicationUser user)
     {
